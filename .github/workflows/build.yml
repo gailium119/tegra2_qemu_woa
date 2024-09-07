@@ -93,9 +93,9 @@ jobs:
       run: |
           md ${{ github.workspace }}\artifacts
           cd ${{ github.workspace }}\artifacts
-          move D:\a\qemu\qemu\build\*.exe
-          move D:\a\qemu\qemu\build\pc-bios share
-          robocopy D:\a\qemu\qemu\pc-bios share /xn /xo /mov
+          move ${{ github.workspace }}\build\*.exe
+          move ${{ github.workspace }}\build\pc-bios share
+          robocopy ${{ github.workspace }}\pc-bios share /xn /xo /mov
           del share\*.bz2
 
     - name: Prepare Artifacts (dynamic only)
@@ -106,56 +106,11 @@ jobs:
           copy D:\a\_temp\msys64\mingw64\bin\*.dll
           md lib\gdk-pixbuf-2.0\2.10.0
           fsutil file createNew lib\gdk-pixbuf-2.0\2.10.0\loaders.cache 0
-          move D:\a\qemu\qemu\build\po share\locale
+          move ${{ github.workspace }}\build\po share\locale
 
     - name: Upload artifact
       uses: actions/upload-artifact@main
       with:
         name: QEMU (${{ matrix.mode }} build)
-        path: ${{ github.workspace }}/artifacts
-        compression-level: 9
-
-  build_linux:
-    runs-on: ubuntu-24.04
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - { arch: x64 }
-          - { arch: aarch64 }
-
-    name: Build Linux ${{ matrix.arch }}
-
-    steps:
-
-    - name: '🧰 Checkout'
-      uses: actions/checkout@main
-
-    - name: 'Install software packages'
-      run: sudo apt-get install libglib2.0-dev libfdt-dev libpixman-1-dev ninja-build libaio-dev libbluetooth-dev libcapstone-dev libbrlapi-dev libbz2-dev libcap-ng-dev libcurl4-gnutls-dev libgtk-3-dev libibverbs-dev libjpeg8-dev  libnuma-dev librbd-dev librdmacm-dev libsasl2-dev libsdl2-dev libseccomp-dev libsnappy-dev libssh-dev libvde-dev libvdeplug-dev libvte-2.91-dev libxen-dev liblzo2-dev valgrind xfslibs-dev libnfs-dev libiscsi-dev
-
-    - name: 'Install cross build gcc'
-      if: ${{ matrix.arch == 'aarch64' }}
-      run: |
-          sudo apt-get install gcc-aarch64-linux-gnu
-          sudo wget -O/usr/bin/aarch64-linux-gnu-pkg-config https://gist.githubusercontent.com/doug65536/ea9c52f9a65a655a2fd5cc4997e8443b/raw/58ff163d4c59119e1f660b2a9d52e7f867bf1a7d/aarch64-linux-gnu-pkg-config
-          sudo chmod +x /usr/bin/aarch64-linux-gnu-pkg-config
-
-    - name: '🚧 Build QEMU Linux (arm & aarch64) ${{ matrix.mode }}'
-      env:
-        arg: ${{ matrix.arch == 'x64' && '--enable-gtk --enable-sdl --enable-avx2 --target-list=arm-softmmu,aarch64-softmmu --disable-werror' || '--enable-gtk --enable-sdl --enable-avx2 --enable-kvm --target-list=arm-softmmu,aarch64-softmmu --disable-werror --cross-prefix=aarch64-linux-gnu-' }}
-      run: |
-          ./configure ${{ env.arg }}
-          make -j16
-
-    - name: Prepare Artifacts
-      run: |
-          mkdir artifacts
-          mv build/* artifacts/
-
-    - name: Upload artifact
-      uses: actions/upload-artifact@main
-      with:
-        name: QEMU Linux (${{ matrix.arch }} build)
         path: ${{ github.workspace }}/artifacts
         compression-level: 9
