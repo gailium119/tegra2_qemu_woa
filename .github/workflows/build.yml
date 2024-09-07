@@ -83,7 +83,7 @@ jobs:
 
     - name: '🚧 Build QEMU (arm & aarch64) ${{ matrix.mode }}'
       env:
-        arg: ${{ matrix.mode == 'dynamic' && '--enable-gtk --enable-sdl --enable-fdt=system --enable-avx2 --target-list=arm-softmmu,aarch64-softmmu --disable-werror' || '--disable-gtk --disable-spice --disable-usb-redir --disable-smartcard --disable-gnutls --disable-vnc-sasl --disable-libssh --enable-sdl --enable-fdt=system --enable-avx2 --target-list=arm-softmmu,aarch64-softmmu  --disable-werror --static --extra-cflags="-DCURL_STATICLIB -DLIBSSH_STATIC -DLIBSLIRP_STATIC -DCAIRO_WIN32_STATIC_BUILD" --extra-ldflags=="-liconv"' }}
+        arg: ${{ matrix.mode == 'dynamic' && '--enable-gtk --enable-sdl --enable-fdt=system --enable-avx2 --target-list=arm-softmmu,aarch64-softmmu --disable-werror' || '--disable-gtk --disable-spice --disable-usb-redir --disable-smartcard --disable-gnutls --disable-vnc-sasl --disable-libssh --enable-sdl --enable-fdt=system --enable-avx2 --target-list=arm-softmmu,aarch64-softmmu  --disable-werror --static --extra-cflags="-DCURL_STATICLIB -DLIBSSH_STATIC -DLIBSLIRP_STATIC -DCAIRO_WIN32_STATIC_BUILD" --extra-ldflags="-liconv"' }}
       run: |
           ./configure ${{ env.arg }}
           make -j16
@@ -138,7 +138,8 @@ jobs:
       if: ${{ matrix.arch == 'aarch64' }}
       run: |
           sudo apt-get install gcc-aarch64-linux-gnu
-          sudo ln -sf /usr/bin/pkg-config /usr/bin/aarch64-linux-gnu-pkg-config
+          sudo wget -O/usr/bin/aarch64-linux-gnu-pkg-config https://gist.githubusercontent.com/doug65536/ea9c52f9a65a655a2fd5cc4997e8443b/raw/58ff163d4c59119e1f660b2a9d52e7f867bf1a7d/aarch64-linux-gnu-pkg-config
+          sudo chmod +x /usr/bin/aarch64-linux-gnu-pkg-config
 
     - name: '🚧 Build QEMU Linux (arm & aarch64) ${{ matrix.mode }}'
       env:
