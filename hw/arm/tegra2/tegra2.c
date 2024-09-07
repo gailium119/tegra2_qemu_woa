@@ -246,6 +246,28 @@ static void load_memory_images(MachineState *machine)
     }
 }
 
+static void* tegra_init_sdmmc(int index, hwaddr base, qemu_irq irq)
+{
+    DeviceState *carddev;
+    BlockBackend *blk;
+    DriveInfo *di;
+
+    void* tmpdev = qdev_new(TYPE_SYSBUS_SDHCI);
+    qdev_prop_set_uint32(tmpdev, "capareg", 0x5780A8A);
+    sysbus_realize_and_unref(SYS_BUS_DEVICE(tmpdev), &error_fatal);
+
+    sysbus_mmio_map(SYS_BUS_DEVICE(tmpdev), 0, base);
+    sysbus_connect_irq(SYS_BUS_DEVICE(tmpdev), 0, irq);
+
+    di = drive_get_by_index(IF_SD, index);
+    blk = di ? blk_by_legacy_dinfo(di) : NULL;
+    carddev = qdev_new(TYPE_SD_CARD);
+    qdev_prop_set_drive(carddev, "drive", blk);
+    qdev_prop_set_bit(carddev, "emmc", false);
+    qdev_realize_and_unref(carddev, qdev_get_child_bus(tmpdev, "sd-bus"), &error_fatal);
+    return tmpdev;
+}
+
 static void tegra2_init(MachineState *machine)
 {
     MemoryRegion *cop_sysmem = g_new(MemoryRegion, 1);
@@ -384,29 +406,12 @@ static void tegra2_init(MachineState *machine)
     tegra_rtc_dev = sysbus_create_simple("tegra.rtc",
                                          TEGRA_RTC_BASE, DIRQ(INT_RTC));
 
-    /* SDHCI4 */
-    {
-        DeviceState *carddev;
-        BlockBackend *blk;
-        DriveInfo *di;
-
-        tegra_sdhci4_dev = qdev_new(TYPE_SYSBUS_SDHCI);
-        qdev_prop_set_uint32(tegra_sdhci4_dev, "capareg", 0x5780A8A);
-        sysbus_realize_and_unref(SYS_BUS_DEVICE(tegra_sdhci4_dev), &error_fatal);
-
-        sysbus_mmio_map(SYS_BUS_DEVICE(tegra_sdhci4_dev), 0, TEGRA_SDMMC4_BASE);
-        sysbus_connect_irq(SYS_BUS_DEVICE(tegra_sdhci4_dev), 0, DIRQ(INT_SDMMC4));
-
-        di = drive_get(IF_SD, 0, 0);
-        blk = di ? blk_by_legacy_dinfo(di) : NULL;
-        carddev = qdev_new(TYPE_SD_CARD);
-        qdev_prop_set_drive(carddev, "drive", blk);
-        qdev_prop_set_bit(carddev, "emmc", false);
-        qdev_realize_and_unref(carddev, qdev_get_child_bus(tegra_sdhci4_dev, "sd-bus"), &error_fatal);
-
-//         tegra_sdhci4_dev = sysbus_create_simple("tegra.sdhci",
-//                                                 TEGRA_SDMMC4_BASE, DIRQ(INT_SDMMC4));
-    }
+    /* SDMC controllers */
+	/* Init SDMMC4 first as that's the one the UEFI firmware SDMMC driver uses, then 1,2,3 */
+    tegra_sdhci4_dev = tegra_init_sdmmc(0, TEGRA_SDMMC4_BASE, DIRQ(INT_SDMMC4));
+    tegra_sdhci1_dev = tegra_init_sdmmc(1, TEGRA_SDMMC1_BASE, DIRQ(INT_SDMMC1));
+    tegra_sdhci2_dev = tegra_init_sdmmc(2, TEGRA_SDMMC2_BASE, DIRQ(INT_SDMMC2));
+    tegra_sdhci3_dev = tegra_init_sdmmc(3, TEGRA_SDMMC3_BASE, DIRQ(INT_SDMMC3));
 
     /* Timer1 */
     tegra_timer1_dev = sysbus_create_simple("tegra.timer",
