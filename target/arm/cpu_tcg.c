@@ -369,12 +369,12 @@ static void cortex_a9_initfn(Object *obj)
     cpu->reset_sctlr = 0x00c50078;
     cpu->isar.id_pfr0 = 0x1031;
     cpu->isar.id_pfr1 = 0x11;
-    cpu->isar.id_dfr0 = 0x000;
+    cpu->isar.id_dfr0 = 0x10444;
     cpu->id_afr0 = 0;
     cpu->isar.id_mmfr0 = 0x00100103;
     cpu->isar.id_mmfr1 = 0x20000000;
     cpu->isar.id_mmfr2 = 0x01230000;
-    cpu->isar.id_mmfr3 = 0x00002111;
+    cpu->isar.id_mmfr3 = 0x00102111;
     cpu->isar.id_isar0 = 0x00101111;
     cpu->isar.id_isar1 = 0x13112111;
     cpu->isar.id_isar2 = 0x21232041;
