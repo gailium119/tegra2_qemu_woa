@@ -136,7 +136,7 @@ jobs:
 
     - name: 'Install cross build gcc'
       if: ${{ matrix.arch == 'aarch64' }}
-      run: sudo apt-get install gcc-aarch64-linux-gnu
+      run: sudo apt-get install gcc-aarch64-linux-gnu pkg-config-aarch64-linux-gnu
 
     - name: '🚧 Build QEMU Linux (arm & aarch64) ${{ matrix.mode }}'
       env:
