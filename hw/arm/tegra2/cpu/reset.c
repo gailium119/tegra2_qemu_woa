@@ -148,6 +148,8 @@ int tegra_cpu_is_powergated(int cpu_id)
     switch (cpu_id) {
     case TEGRA2_A9_CORE0:
     case TEGRA2_A9_CORE1:
+    case TEGRA2_A9_CORE2:
+    case TEGRA2_A9_CORE3:
         return tegra_A9_powergated;
     case TEGRA2_COP:
         return tegra_AVP_powergated;
@@ -168,6 +170,8 @@ static void tegra_cpu_powergateA9(void)
 
     tegra_cpu_reset_assert(TEGRA2_A9_CORE0);
     tegra_cpu_reset_assert(TEGRA2_A9_CORE1);
+    tegra_cpu_reset_assert(TEGRA2_A9_CORE2);
+    tegra_cpu_reset_assert(TEGRA2_A9_CORE3);
     tegra_a9mpcore_reset();
     tegra_A9_powergated = 1;
 }
@@ -204,11 +208,13 @@ static void tegra_cpu_unpowergateAVP(void)
 
 static void tegra_cpu_powergate_sanity_check(void)
 {
-    CPUState *cs = qemu_get_cpu(TEGRA2_A9_CORE1);
+	for (int i = TEGRA2_A9_CORE1; i < TEGRA2_A9_NCORES; i++) {
+    CPUState *cs = qemu_get_cpu(i);
     ARMCPU *cpu = ARM_CPU(cs);
 
     /* Core 1 should be stopped before CPU powergate.  */
     g_assert(cpu->power_state == PSCI_OFF);
+	}
 }
 
 void tegra_cpu_powergate(int cpu_id)
@@ -216,6 +222,8 @@ void tegra_cpu_powergate(int cpu_id)
     switch (cpu_id) {
     case TEGRA2_A9_CORE0:
     case TEGRA2_A9_CORE1:
+    case TEGRA2_A9_CORE2:
+    case TEGRA2_A9_CORE3:
         tegra_cpu_powergate_sanity_check();
         tegra_cpu_powergateA9();
         break;
@@ -232,6 +240,8 @@ void tegra_cpu_unpowergate(int cpu_id)
     switch (cpu_id) {
     case TEGRA2_A9_CORE0:
     case TEGRA2_A9_CORE1:
+    case TEGRA2_A9_CORE2:
+    case TEGRA2_A9_CORE3:
         tegra_cpu_unpowergateA9();
         break;
     case TEGRA2_COP:

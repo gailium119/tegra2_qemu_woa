@@ -56,6 +56,12 @@ int __attribute__((const)) tegra_sibling_cpu(int cpu_id)
     case TEGRA2_A9_CORE1:
         return TEGRA2_A9_CORE0;
         break;
+    case TEGRA2_A9_CORE2:
+        return TEGRA2_A9_CORE3;
+        break;
+    case TEGRA2_A9_CORE3:
+        return TEGRA2_A9_CORE2;
+        break;
     }
 
     return cpu_id;

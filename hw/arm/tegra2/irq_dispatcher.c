@@ -112,7 +112,7 @@ static void tegra_irq_dispatcher_realize(DeviceState *dev, Error **errp)
 {
     /* Initialize IRQs coming from devices to dispatcher */
     qdev_init_gpio_in(dev, tegra_irq_dispatcher_set_irq_dev, INT_MAIN_NR);
-    qdev_init_gpio_in(dev, tegra_irq_dispatcher_set_irq_gic, 2);
+    qdev_init_gpio_in(dev, tegra_irq_dispatcher_set_irq_gic, TEGRA2_A9_NCORES);
     qdev_init_gpio_in(dev, tegra_irq_dispatcher_set_cpu_irq_lic, 2);
     qdev_init_gpio_in(dev, tegra_irq_dispatcher_set_cop_irq_lic, 2);
 }
