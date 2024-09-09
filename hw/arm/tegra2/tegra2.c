@@ -281,9 +281,13 @@ static void tegra2_init(MachineState *machine)
     int i, j;
 
     /* Main RAM */
-    assert(machine->ram_size <= TEGRA_DRAM_SIZE);
+    assert(machine->ram_size == (unsigned int)TEGRA_DRAM_SIZE || machine->ram_size == (unsigned int)TEGRA_DRAM_SIZE + TEGRA_PCIE_SIZE);
     memory_region_add_and_init_ram(sysmem, "tegra.dram",
-                                   TEGRA_DRAM_BASE, machine->ram_size, RW);
+                                   TEGRA_DRAM_BASE, TEGRA_DRAM_SIZE, RW);
+    if (machine->ram_size > TEGRA_DRAM_SIZE) {
+        memory_region_add_and_init_ram(sysmem, "tegra.dram2",
+                                   TEGRA_PCIE_BASE, TEGRA_PCIE_SIZE, RW);
+    }
 
     memory_region_add_and_init_ram(sysmem, "tegra.hi-vec",
                                    0xffff0000, SZ_64K, RW);
